@@ -46,28 +46,28 @@ class PreProcess:
     def get_tokenized_sentences(self):
         print("Tokenizing sentences with NLTK ...")
         
-        # train here
-        custom_sent_tokenizer = PunktSentenceTokenizer(self.text)
-        # test here
-        sent_tokenized_list = custom_sent_tokenizer.tokenize(self.text)
-        clean_sent_tokenized_list = [self.clean_text(s) for s in sent_tokenized_list]
-        #sent_tokenized_list2 = sent_tokenize(self.text)
+        clean_text = self.clean_text(self.text)
+        #custom_sent_tokenizer = PunktSentenceTokenizer(clean_text)
+        #sent_tokenized_list = custom_sent_tokenizer.tokenize(clean_text)
+        sent_tokenized_list = sent_tokenize(clean_text)
 
         #print("s1:", sent_tokenized_list1[2], "s2:", sent_tokenized_list2[2])
-        return clean_sent_tokenized_list
+        return sent_tokenized_list
 
     def clean_text(self, text):
 
-        #text = re.sub(r"\\n(\d)", "\1", text)
+        text =re.sub(r'\s\d\s\.', ' ', text)
+        text = re.sub(r"\\n(\d)", " ", text)
         #text = re.sub(r"\\n", " ",text)
-        text = text.replace("\n", " ")
+        text = re.sub(r'\n', r' ', text)
         #text = re.sub(r"\'m", " am", s)
         # remove all punctuation
         #text = re.sub("([^\w\s]|\_)",r' ', text)
-        #text = text.encode("utf-8")
+        text = text.encode().decode('utf-8')
         # remove extra spaces
-        clean_text = re.sub("(\s)+", r" ", text)
+        clean_text = re.sub(r'(\s)+', r' ', text)
 
+        #print(clean_text)
         return clean_text
 
 
@@ -92,7 +92,7 @@ class PreProcess:
             sentence_ordered_dict2 = OrderedDict()
             sentence_ordered_dict2["index"] = cnt
             sentence_ordered_dict2["nltk_sentence"] = s2
-            sentence_ordered_dict_list.append(NoIndent(sentence_ordered_dict))
+            sentence_ordered_dict_list.append(NoIndent(sentence_ordered_dict2))
 
             if self.verbose:
                 sys.stdout.write("\rStatus: %s / %s"%(cnt, t_length))
