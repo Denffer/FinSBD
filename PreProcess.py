@@ -4,7 +4,8 @@ from nltk.tokenize import sent_tokenize
 from nltk.tokenize import PunktSentenceTokenizer
 from collections import OrderedDict
 import nltk
-import spacy
+from tqdm import tqdm
+#import spacy
 
 class PreProcess:
     """ This program aims to preprocess Train_en_new.json in new_dataset """
@@ -16,6 +17,7 @@ class PreProcess:
         self.filename = "clean_train_data.json"
 
         self.text, self.begin, self.end = [],[],[]
+        self.tokenized_corpus = []
         self.verbose = 1
 
     def get_data(self):
@@ -25,42 +27,69 @@ class PreProcess:
             data = json.load(f)
 
         self.text = data["text"]
+        self.tokenized_corpus = self.text.split(" ")
         self.begin = data["begin_sentence"]
         self.end = data["end_sentence"]
 
         print("Loading data complete")
 
-    def organize_sentences(self):
-        print("Splitting sentences from raw text in data ...")
+    def get_ground_truth(self):
+        """ get ground truth """
+        print("Getting ground truth ...")
 
-        words = self.text.split(" ")
-        sentences = []
-        for b, e in zip(self.begin, self.end):
-            word_list = words[b:e]
-            sentence = " ".join(word_list)
-            self.clean_text(sentence)
+        # Splitting sentences from raw text in corpus
+        ground_truth = []
+        for b, e in tqdm(zip(self.begin, self.end)):
+            filtered_tokenized_corpus = self.tokenized_corpus[b:e]
+            sentence = " ".join(filtered_tokenized_corpus)
+            #self.clean_text(sentence)
 
-            #print sentence
-            sentences.append(sentence)
+            index = [b,e]
+            # grouth_truth = [ [[22, 29], [blah blah ... blah"], * n ]
+            ground_truth.append([index, sentence])
 
-        return sentences
+        return ground_truth
     
-    def get_nltk_tokenized_sentences(self):
-        print("Tokenizing sentences with NLTK ...")
+    def get_nltk_result(self):
+        """ get nltk result | the format is the same as ground truth """
+        print("Getting nltk result ... ")
         
-        # clean_text is a long string
-        clean_text = self.clean_text(self.text)
-        tokenized_sentences = sent_tokenize(clean_text)
+        # tokenizing sentences with NLTK
+        nltk_tokenized_sentences = sent_tokenize(self.text)
+
+        # get tokenized_sentence index
+        nltk_result = []
+        for sentence in tqdm(nltk_tokenized_sentences):
+            sentence_index = self.find_sublist_index(sentence, self.tokenized_corpus)
+
+            nltk_result.append([sentence_index, sentence])
 
         # tokenize every sentence in tokenized_sentences 
         #pos_tagged_sentences = self.get_pos_tagged_sentences(tokenized_sentences)
         #self.filter_sentences(tokenized_sentences)
+        #print(sentence_indexes)
+        return sentence_indexes
 
         return tokenized_sentences
+
+    def find_sublist_index(self, sublist, l):
+        """ find the index of sublist in a list """
+
+        sublist_index =[]
+        sublist_length=len(sublist)
+        try:
+            for index in (i for i,e in enumerate(l) if e==sublist[0]):
+                if l[index:index+sublist_length]==sublist:
+                    sublist_index = [index,index+sublist_length-1]
+        except:
+            sublist_index = [None, None]
+   
+        # E.g., sublist_index : [22, 49]
+        return sublist_index
     
     def get_spacy_tokenized_sentences(self):
-        print("Tokenizing sentences with SpaCy ...")
         """ bad performance """
+        print("Tokenizing sentences with SpaCy ...")
 
         clean_text = self.clean_text(self.text)
 
@@ -93,6 +122,7 @@ class PreProcess:
         Filter sentences by using spacy
         A sentence must have a subject and a verb
         """
+        print("Filtering sentences from nltk_sentences ...")
         # Load English tokenizer, tagger, parser, NER and word vectors
         nlp = spacy.load("en")
 
@@ -108,9 +138,8 @@ class PreProcess:
                 filtered_sentences.append(doc.text)
                 # print(doc.text)
 
+        return filtered_sentences
 
-
-            
 
     def clean_text(self, text):
 
@@ -129,7 +158,14 @@ class PreProcess:
         return clean_text
 
 
-    def render(self, ground_truth_sentences, nltk_sentences, spacy_sentences):
+
+    # def evaluate_result(self, text):
+    #     """ compare input list with ground truth"""
+
+        
+
+    # def render(self, ground_truth_sentences, nltk_sentences, spacy_sentences):
+    def render(self, ground_truth, nltk_result):
         """ put things in order and render json file """
 
         print("Writing data to: " + str(self.dst) + "\033[1m" + str(self.filename) + "\033[0m")
@@ -141,21 +177,26 @@ class PreProcess:
         sentence_ordered_dict_list = []
         cnt = 0
         t_length = len(ground_truth_sentences)
-        for s1, s2, s3 in zip(ground_truth_sentences, nltk_sentences, spacy_sentences):
+        #for s1, s2, s3 in zip(ground_truth_sentences, nltk_sentences, filtered_sentences):
+        for s1, s2 in zip(ground_truth, nltk_result):
             cnt += 1
             sentence_ordered_dict = OrderedDict()
-            sentence_ordered_dict["index"] = cnt
-            sentence_ordered_dict["sentence"] = s1
+            sentence_ordered_dict["cnt"] = cnt
+            sentence_ordered_dict["index"] = s1[0]
+            # s1 = self.clean_text(s1)
+            sentence_ordered_dict["ground_truth"] = s1[1]
             sentence_ordered_dict_list.append(NoIndent(sentence_ordered_dict))
             sentence_ordered_dict2 = OrderedDict()
-            sentence_ordered_dict2["index"] = cnt
-            sentence_ordered_dict2["nltk_sentence"] = s2
+            sentence_ordered_dict2["cnt"] = cnt
+            sentence_ordered_dict2["index"] = s2[0]
+            sentence_ordered_dict2["nltk_sentence"] = s2[1]
             sentence_ordered_dict_list.append(NoIndent(sentence_ordered_dict2))
-            # sentence_ordered_dict3 = OrderedDict()
-            # sentence_ordered_dict3["index"] = cnt
-            # sentence_ordered_dict3["spacy_sentence"] = s3
-            # sentence_ordered_dict_list.append(NoIndent(sentence_ordered_dict3))
-            # sentence_ordered_dict_list.append(NoIndent({}))
+            sentence_ordered_dict_list.append(NoIndent({}))
+            #sentence_ordered_dict3 = OrderedDict()
+            #sentence_ordered_dict3["index"] = cnt
+            #sentence_ordered_dict3["filtered_sentence"] = s3
+            #sentence_ordered_dict_list.append(NoIndent(sentence_ordered_dict3))
+            #sentence_ordered_dict_list.append(NoIndent({}))
 
             if self.verbose:
                 sys.stdout.write("\rStatus: %s / %s"%(cnt, t_length))
@@ -178,8 +219,8 @@ def default(o, encoder=json.JSONEncoder()):
 if __name__ == '__main__':
     preprocess = PreProcess()
     preprocess.get_data()
-    ground_truth_sentences = preprocess.organize_sentences()
-    nltk_sentences = preprocess.get_nltk_tokenized_sentences()
+    ground_truth = preprocess.get_ground_truth()
+    nltk_result = preprocess.get_nltk_result()
     #spacy_sentences = preprocess.get_spacy_tokenized_sentences()
-    filtered_sentences = preprocess.get_filtered_sentences(nltk_sentences)
-    preprocess.render(ground_truth_sentences, nltk_sentences, spacy_sentences)
+    #filtered_sentences = preprocess.get_filtered_sentences(nltk_sentences)
+    preprocess.render(ground_truth, nltk_result)
