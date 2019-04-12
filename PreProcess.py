@@ -5,7 +5,7 @@ from nltk.tokenize import PunktSentenceTokenizer
 from collections import OrderedDict
 import nltk
 from tqdm import tqdm
-#import spacy
+import spacy
 
 class PreProcess:
     """ This program aims to preprocess Train_en_new.json in new_dataset """
@@ -68,9 +68,7 @@ class PreProcess:
         #pos_tagged_sentences = self.get_pos_tagged_sentences(tokenized_sentences)
         #self.filter_sentences(tokenized_sentences)
         #print(sentence_indexes)
-        return sentence_indexes
-
-        return tokenized_sentences
+        return nltk_result
 
     def find_sublist_index(self, sublist, l):
         """ find the index of sublist in a list """
@@ -176,7 +174,7 @@ class PreProcess:
 
         sentence_ordered_dict_list = []
         cnt = 0
-        t_length = len(ground_truth_sentences)
+        t_length = len(ground_truth)
         #for s1, s2, s3 in zip(ground_truth_sentences, nltk_sentences, filtered_sentences):
         for s1, s2 in zip(ground_truth, nltk_result):
             cnt += 1
