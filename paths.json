@@ -1,0 +1,8 @@
+{
+    "train_en":"new_dataset/Train_en_new.json",
+    "train_en_small":"new_dataset/Train_en_small.json",
+    "train_fr":"new_dataset/Train_fr_new.json",
+    "test_en":"",
+    "test_fr":"",
+    "output":"output/"
+}
