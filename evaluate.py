@@ -1,83 +1,16 @@
-import json, sys
-import argparse
-import unicodedata
-from tokenizer import Tokenizer
-from collections import OrderedDict
+import json, argparse
 from dataset import TextDataset
-import nltk
-from tqdm import tqdm
-import spacy
+from preprocess import Preprocess
+from tokenizer import Tokenizer
+from render import Render
+#import spacy
 
 class Evaluate:
-    """ python version : 3.7 """
+    """ python version : 3.6 """
 
-    def __init__(self, src, dst="output/"):
-        self.src = src
-        #self.dst = "output/"
-        self.dst = dst
-
-        # self.text, self.begin, self.end = [],[],[]
-        # self.tokenized_corpus = []
-        # self.verbose = 1
-
-    def get_ground_truth(self, data):
-        """ get ground truth """
-        print("Getting ground truth ...")
-
-        # Splitting sentences from raw text in corpus
-        ground_truth = []
-        for b, e in zip(data.begin, data.end):
-            # add 1 to include the last index
-            words = data.tokenized_corpus[b:e+1]
-            sentence = " ".join(words)
-
-            index = [b,e]
-            # grouth_truth = [ [[22, 29], [blah blah ... blah"], * n ]
-            ground_truth.append([index, sentence])
-
-        return ground_truth
-    
-    def get_nltk_result(self, data):
-        print("Getting nltk result ... ")
-        
-        tokenizer = Tokenizer()
-        tokenized_sentences = tokenizer.text_tokenize(data.text)
-        tokenized_words = [s.split(" ") for s in tokenized_sentences]
-
-        # get tokenized_sentence index
-        result, sentences, begin, end = [], [], [], []
-        for words in tqdm(tokenized_words):
-
-            sentence_index, tarket_words = self.find_sublist_index(words, data.tokenized_corpus)
-            sentence = " ".join(tarket_words)
-
-            # filter out sentences if it is too short
-            if int(sentence_index[1]) - int(sentence_index[0]) >= 5:
-                #sentence = self.clean_text(sentence)
-                sentences.append([sentence_index, sentence])
-                begin.append(sentence_index[0])
-                end.append(sentence_index[1])
-            else:
-                pass
-
-        evaluation = self.evaluate(data, begin, end)
-        result = {"begin":begin, "end":end, "sentences":sentences, "evaluation":evaluation}
-
-        return result
-
-    def find_sublist_index(self, sublist, l):
-        """ find the index of sublist in a list """
-
-        sublist_index = []
-        sublist_length = len(sublist)
-        for index in (i for i,e in enumerate(l) if e == sublist[0]):
-            if l[index:index+sublist_length] == sublist:
-                sublist_index = [index,index+sublist_length-1]
-            else:
-                continue
-                
-        # E.g., sublist : ["word1", "word2", ...] sublist_index : [22, 49]
-        return sublist_index, sublist
+    def __init__(self, src_path, dst_path="output/"):
+        self.src = src_path
+        self.dst = dst_path
 
     def evaluate(self, data, begin, end):
         """ check the percentage hit rate as compared to ground truth """
@@ -120,86 +53,35 @@ class Evaluate:
                 # print(doc.text)
 
         return filtered_sentences
-
-    def render(self, data, ground_truth, nltk_result):
-        """ put things in order and render json file """
-
-        print("Writing data to: " + str(self.dst) + "\033[1m" + "nltk_output.txt" + "\033[0m")
-
-        result = OrderedDict()
-        result["begin"] = NoIndent(data.begin)
-        result["end"] = NoIndent(data.end)
-        result["nltk_begin"] = NoIndent(nltk_result["begin"])
-        result["nltk_end"] = NoIndent(nltk_result["end"])
-        result["nltk_evaluation"] = NoIndent(nltk_result["evaluation"])
-
-        sentence_list = []
-        cnt = 0
-        g_length = len(ground_truth)
-        #for s1, s2, s3 in zip(ground_truth_sentences, nltk_sentences, filtered_sentences):
-        for s in ground_truth:
-            cnt += 1
-            sentence = OrderedDict()
-            sentence["cnt"] = cnt
-            sentence["index"] = s[0]
-            sentence["sentence"] = s[1]
-            sentence_list.append(NoIndent(sentence))
-
-            # if self.verbose:
-            #     sys.stdout.write("\rStatus: %s / %s"%(cnt, g_length))
-            #     sys.stdout.flush()
-                
-        result["ground_truth"] = sentence_list
-
-        nltk_sentence_list = []
-        cnt = 0
-        n_length = len(nltk_result)
-        for s in nltk_result["sentences"]:
-            cnt += 1
-            sentence = OrderedDict()
-            sentence["cnt"] = cnt
-            sentence["index"] = s[0]
-            sentence["sentence"] = s[1]
-            nltk_sentence_list.append(NoIndent(sentence))
-            
-            # if self.verbose:
-            #     sys.stdout.write("\rStatus: %s / %s"%(cnt, n_length))
-            #     sys.stdout.flush()
-
-        result["nltk_result"] = nltk_sentence_list
-
-        f = open(self.dst + "/nltk_result.json", 'w+')
-        f.write(json.dumps(result, indent = 4, default=default))
     
     def run(self):
-
+        
+        # get data
         data = TextDataset(self.src)
 
+        # preprocess
+        preprocessor = Preprocess(data)
+        ground_truth = preprocessor.get_ground_truth(data)
+        nltk_sentences = preprocessor.get_nltk_tokenized_sentences(data)
+        nltk_words = preprocessor.get_tokenized_words(nltk_sentences)
+        
+        # nltk as baseline
+        nltk_begin, nltk_end, nltk_sentences = preprocessor.find_sentence_index(data, nltk_words)
+        nltk_evaluation = self.evaluate(data, nltk_begin, nltk_end)
+        nltk_result = {"key":"nltk", "begin":nltk_begin, "end":nltk_end, "sentences":nltk_sentences, "evaluation":nltk_evaluation}
 
-        #self.get_data()
-        #preprocess.dump_small_dataset()
-        ground_truth = self.get_ground_truth(data)
-        nltk_result = self.get_nltk_result(data)
-        #spacy_sentences = preprocess.get_spacy_tokenized_sentences()
-        #filtered_sentences = preprocess.get_filtered_sentences(nltk_sentences)
-        self.render(data, ground_truth, nltk_result)
+        # start making changes
 
-
-class NoIndent(object):
-    def __init__(self, value):
-        self.value = value
-
-def default(o, encoder=json.JSONEncoder()):
-    if isinstance(o, NoIndent):
-        return json.dumps(o.value)
-    return encoder.default(o)
+        # write result
+        print("Writing data to: " + str(self.dst) + "\033[1m" + "output.txt" + "\033[0m")
+        render = Render(self.dst, data, ground_truth, nltk_result)
+        render.save()
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--src", type=str, required=True, help="path for the source")
-    
     args = parser.parse_args()
 
-    main = Evaluate(src=args.src)
+    main = Evaluate(src_path=args.src)
     main.run()
