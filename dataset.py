@@ -1,8 +1,8 @@
 import re, json
 
 class TextDataset:
+    """ load data from paths.json """
     def __init__(self, src):
-        #self.data = self.get_train(src)
         self.data = self.load_train_en(src)
 
         self.text = self.data["text"].replace("\n","")
@@ -51,50 +51,3 @@ def load_data(path):
     # clean_text = re.sub(r'(\s)+', r' ', text)
 
     # return clean_text
-
-    # def get_ground_truth(self):
-
-    #     """ get ground truth """
-    #     print("Getting ground truth ...")
-
-    #     # Splitting sentences from raw text in corpus
-    #     ground_truth = []
-    #     for b, e in zip(self.begin, self.end):
-    #         # add 1 to include the last index
-    #         words = self.tokenized_corpus[b:e+1]
-    #         sentence = " ".join(words)
-
-    #         index = [b,e]
-    #         # grouth_truth = [ [[22, 29], [blah blah ... blah"], * n ]
-    #         ground_truth.append([index, sentence])
-
-    #     return ground_truth
-    
-    # def get_nltk_result(self):
-    #     """ get nltk result | the format is the same as ground truth """
-    #     print("Getting nltk result ... ")
-        
-    #     # tokenizing sentences with NLTK
-    #     tokenized_sentences = sent_tokenize(self.text)
-    #     tokenized_words = [s.split(" ") for s in tokenized_sentences]
-
-    #     # get tokenized_sentence index
-    #     result, sentences, begin, end = [], [], [], []
-    #     for words in tqdm(tokenized_words):
-
-    #         sentence_index, tarket_words = self.find_sublist_index(words, self.tokenized_corpus)
-    #         sentence = " ".join(tarket_words)
-
-    #         # filter out sentences if it is too short
-    #         if int(sentence_index[1]) - int(sentence_index[0]) >= 5:
-    #             #sentence = self.clean_text(sentence)
-    #             sentences.append([sentence_index, sentence])
-    #             begin.append(sentence_index[0])
-    #             end.append(sentence_index[1])
-    #         else:
-    #             pass
-
-    #     evaluation = self.evaluate(begin, end)
-    #     result = {"begin":begin, "end":end, "sentences":sentences, "evaluation":evaluation}
-
-    #     return result
