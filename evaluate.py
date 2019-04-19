@@ -2,6 +2,7 @@ import json, argparse
 from dataset import TextDataset
 from preprocess import Preprocess
 from tokenizer import Tokenizer
+from model.rule_based import RuleBased
 from render import Render
 #import spacy
 
@@ -31,50 +32,54 @@ class Evaluate:
 
         return evaluation
 
-    def get_filtered_sentences(self, sentences):
-        """
-        Filter sentences by using spacy
-        A sentence must have a subject and a verb
-        """
-        print("Filtering sentences from nltk_sentences ...")
-        # Load English tokenizer, tagger, parser, NER and word vectors
-        nlp = spacy.load("en")
-
-        #flag_tags = ["nsubj", "ROOT"]
-        filtered_sentences = []
-
-        for s in sentences:
-            doc = nlp(s)
-            #token_deps = [token.dep_ for token in doc]
-            #print(token_deps)
-            
-            if "nsubj" in [token.dep_ for token in doc]:
-                filtered_sentences.append(doc.text)
-                # print(doc.text)
-
-        return filtered_sentences
-    
     def run(self):
-        
         # get data
         data = TextDataset(self.src)
-
         # preprocess
         preprocessor = Preprocess(data)
         ground_truth = preprocessor.get_ground_truth(data)
-        nltk_sentences = preprocessor.get_nltk_tokenized_sentences(data)
-        nltk_words = preprocessor.get_tokenized_words(nltk_sentences)
-        
-        # nltk as baseline
-        nltk_begin, nltk_end, nltk_sentences = preprocessor.find_sentence_index(data, nltk_words)
-        nltk_evaluation = self.evaluate(data, nltk_begin, nltk_end)
-        nltk_result = {"key":"nltk", "begin":nltk_begin, "end":nltk_end, "sentences":nltk_sentences, "evaluation":nltk_evaluation}
+        results = []
 
-        # start making changes
+        # nltk as baseline
+        print("Processsing NLTK as baseline ... ")
+        nltk_sentences = preprocessor.get_nltk_tokenized_sentences(data)
+        words = preprocessor.get_tokenized_words(nltk_sentences)
+        begin, end, indexed_sentences = preprocessor.find_sentence_index(data, words)
+        evaluation = self.evaluate(data, begin, end)
+        result = {"key":"nltk", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
+        results.append(result)
+
+        # rule_based methods
+        rule_based = RuleBased()
+
+        print("Processsing rule based (Subject) ... ")
+        filtered_sentences = rule_based.filter_subject(nltk_sentences)
+        words = preprocessor.get_tokenized_words(filtered_sentences)
+        begin, end, indexed_sentences = preprocessor.find_sentence_index(data, words)
+        evaluation = self.evaluate(data, begin, end)
+        result = {"key":"has_subject", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
+        results.append(result)
+
+        print("Processsing rule based (Verb)... ")
+        filtered_sentences = rule_based.filter_verb(nltk_sentences)
+        words = preprocessor.get_tokenized_words(filtered_sentences)
+        begin, end, indexed_sentences = preprocessor.find_sentence_index(data, words)
+        evaluation = self.evaluate(data, begin, end)
+        result = {"key":"has_verb", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
+        results.append(result)
+
+        print("Processsing rule based (Subject & Verb)... ")
+        filtered_sentences = rule_based.filter_subject(nltk_sentences)
+        filtered_sentences = rule_based.filter_verb(filtered_sentences)
+        words = preprocessor.get_tokenized_words(filtered_sentences)
+        begin, end, indexed_sentences = preprocessor.find_sentence_index(data, words)
+        evaluation = self.evaluate(data, begin, end)
+        result = {"key":"has_subjectVerb", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
+        results.append(result)
 
         # write result
         print("Writing data to: " + str(self.dst) + "\033[1m" + "output.txt" + "\033[0m")
-        render = Render(self.dst, data, ground_truth, nltk_result)
+        render = Render(self.dst, data, ground_truth, results)
         render.save()
 
 if __name__ == '__main__':
