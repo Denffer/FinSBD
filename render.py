@@ -1,33 +1,43 @@
 from collections import OrderedDict
 import json
-#import pdb; pdb.set_trace()
 
 class Render:
     """ Put things in order and save json file """
-    def __init__(self, dst_path, data, ground_truth, *results):
+    def __init__(self, dst_path, data, ground_truth, results):
         self.dst_path = dst_path
         self.data = data
-        self.ground_truth = ground_truth
-        self.results = list(results)
+        # self.ground_truth = ground_truth # ground truth is the sentences
+        self.results = results
 
         self.output = OrderedDict()
-        self.write_default()
-        for i, result in enumerate(self.results):
-            self.write_evaluation(result)
-            if i == len(self.results)-1:
-                self.write_sentences(self.results[-1])
-            else:
-                continue
+        self.run()
 
-    def write_default(self):
-        self.output["begin"] = NoIndent(self.data.begin)
-        self.output["end"] = NoIndent(self.data.end)
+    def run(self):
+
+        separator = "-"
+        self.write_default(separator)
+        for i, result in enumerate(self.results):
+            if i == len(self.results)-1:
+                #print(i, len(self.results))
+                self.write_evaluation(result, separator*(i+2))
+                self.write_sentences(result)
+            else:
+                #print(i, len(self.results))
+                self.write_evaluation(result, separator*(i+2)) 
+
+    def write_default(self, separator):
+
+        self.output["ground_truth_begin"] = NoIndent(self.data.begin)
+        self.output["ground_truth_end"] = NoIndent(self.data.end)
+        self.output[separator] = {}
+
     
-    def write_evaluation(self, result):
+    def write_evaluation(self, result, separator):
         key = result["key"]
         self.output[key+"_begin"] = NoIndent(result["begin"])
         self.output[key+"_end"] = NoIndent(result["end"])
         self.output[key+"_evaluation"] = NoIndent(result["evaluation"])
+        self.output[separator] = {}
 
     def write_sentences(self, result):
 
