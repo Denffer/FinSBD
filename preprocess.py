@@ -43,13 +43,12 @@ class Preprocess:
         sentences, begin, end = [], [], []
         for words in tqdm(query):
 
-            try:
-                sentence, sentence_index = self.get_sublist_index(words, self.data.indexed_corpus)
+            sentence, sentence_index = self.get_sublist_index(words, self.data.indexed_corpus)
+
+            if sentence and sentence_index:
                 sentences.append([sentence_index, sentence])
                 begin.append(sentence_index[0])
                 end.append(sentence_index[1])
-            except:
-                break
         #print(begin, end, sentences)
         return begin, end, sentences
 
@@ -75,4 +74,6 @@ class Preprocess:
 
         if matched_sentence and sublist_index:
             return matched_sentence, sublist_index
+        else:
+            return None, None
             
