@@ -44,39 +44,40 @@ class Evaluate:
         print("Processsing NLTK as baseline ... ")
         nltk_sentences = p.get_nltk_tokenized_sentences()
         query_list = p.get_tokenized_words(nltk_sentences)
+
+        
         begin, end, indexed_sentences = p.find_sentence_index(query_list)
-        #begin, end, indexed_sentences = p.find_sentence_index(data, words)
         evaluation = self.evaluate(data, begin, end)
         result = {"key":"nltk", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
         results.append(result)
 
-        # rule_based methods
-        # rule_based = RuleBased()
+        #rule_based methods
+        rule_based = RuleBased()
 
-        # print("Processsing rule based (Subject) ... ")
-        # filtered_sentences = rule_based.filter_subject(nltk_sentences)
-        # words = p.get_tokenized_words(filtered_sentences)
-        # begin, end, indexed_sentences = p.find_sentence_index(data, words)
-        # evaluation = self.evaluate(data, begin, end)
-        # result = {"key":"has_subject", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
-        # results.append(result)
+        print("Processsing rule based (Subject) ... ")
+        filtered_sentences = rule_based.filter_subject(nltk_sentences)
+        words = p.get_tokenized_words(filtered_sentences)
+        begin, end, indexed_sentences = p.find_sentence_index(data, words)
+        evaluation = self.evaluate(data, begin, end)
+        result = {"key":"has_subject", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
+        results.append(result)
 
-        # print("Processsing rule based (Verb)... ")
-        # filtered_sentences = rule_based.filter_verb(nltk_sentences)
-        # words = p.get_tokenized_words(filtered_sentences)
-        # begin, end, indexed_sentences = p.find_sentence_index(data, words)
-        # evaluation = self.evaluate(data, begin, end)
-        # result = {"key":"has_verb", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
-        # results.append(result)
+        print("Processsing rule based (Verb)... ")
+        filtered_sentences = rule_based.filter_verb(nltk_sentences)
+        words = p.get_tokenized_words(filtered_sentences)
+        begin, end, indexed_sentences = p.find_sentence_index(data, words)
+        evaluation = self.evaluate(data, begin, end)
+        result = {"key":"has_verb", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
+        results.append(result)
 
-        # print("Processsing rule based (Subject & Verb)... ")
-        # filtered_sentences = rule_based.filter_subject(nltk_sentences)
-        # filtered_sentences = rule_based.filter_verb(filtered_sentences)
-        # words = p.get_tokenized_words(filtered_sentences)
-        # begin, end, indexed_sentences = p.find_sentence_index(data, words)
-        # evaluation = self.evaluate(data, begin, end)
-        # result = {"key":"has_subjectVerb", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
-        # results.append(result)
+        print("Processsing rule based (Subject & Verb)... ")
+        filtered_sentences = rule_based.filter_subject(nltk_sentences)
+        filtered_sentences = rule_based.filter_verb(filtered_sentences)
+        words = p.get_tokenized_words(filtered_sentences)
+        begin, end, indexed_sentences = p.find_sentence_index(data, words)
+        evaluation = self.evaluate(data, begin, end)
+        result = {"key":"has_subjectVerb", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
+        results.append(result)
 
         # write result
         print("Writing data to: " + str(self.dst) + "\033[1m" + "output.txt" + "\033[0m")
