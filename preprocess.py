@@ -1,5 +1,6 @@
 from tokenizer import Tokenizer
 from tqdm import tqdm
+from multiprocessing import Pool
 
 class Preprocess:
     """ preprocess data and get_train """
@@ -36,12 +37,12 @@ class Preprocess:
     def get_tokenized_words(self, sentences):
         """ return a list of words -> [['word1','word2', ...], ['word1','word2', ...] ...] """
         return [s.split(" ") for s in sentences]
-        
-    def find_sentence_index(self, query):
+
+    def find_sentence_index(self, query_list):
         """ return the begin_index & end_index & sentences of the query words """
 
         sentences, begin, end = [], [], []
-        for words in tqdm(query):
+        for words in query_list:
 
             sentence, sentence_index = self.get_sublist_index(words, self.data.indexed_corpus)
 
@@ -61,16 +62,20 @@ class Preprocess:
 
         # add filter to filter out sentences if it is too short
         for index in (i for i, e in enumerate(indexed_list) if e[1] == sublist[0] and sublist_length >= 3 ):
-            # turn indexed words into words for comparison
-            l = [word[1] for word in indexed_list[index:index+sublist_length]]
-            matched_sentence = " ".join(l)
-            if l == sublist:
+
+            if indexed_list[index+1][1] == sublist[1]:
+                # turn indexed words into words for comparison
+                l = [word[1] for word in indexed_list[index:index+sublist_length]]
+                matched_sentence = " ".join(l)
+                if l == sublist:
     
-                indexed_l = [word for word in indexed_list[index:index+sublist_length]]
-                begin, end = indexed_l[0][0], indexed_l[-1][0]
-                sublist_index = [begin, end]
+                    indexed_l = [word for word in indexed_list[index:index+sublist_length]]
+                    begin, end = indexed_l[0][0], indexed_l[-1][0]
+                    sublist_index = [begin, end]
+                else:
+                    continue
             else:
-                continue
+                break
 
         if matched_sentence and sublist_index:
             return matched_sentence, sublist_index
