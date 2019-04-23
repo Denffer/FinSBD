@@ -44,7 +44,6 @@ class Evaluate:
         print("Processsing NLTK as baseline ... ")
         nltk_sentences = p.get_nltk_tokenized_sentences()
         query_list = p.get_tokenized_words(nltk_sentences)
-
         
         begin, end, indexed_sentences = p.find_sentence_index(query_list)
         evaluation = self.evaluate(data, begin, end)
@@ -57,24 +56,22 @@ class Evaluate:
         print("Processsing rule based (Subject) ... ")
         filtered_sentences = rule_based.filter_subject(nltk_sentences)
         words = p.get_tokenized_words(filtered_sentences)
-        begin, end, indexed_sentences = p.find_sentence_index(data, words)
+        begin, end, indexed_sentences = p.find_sentence_index(words)
         evaluation = self.evaluate(data, begin, end)
         result = {"key":"has_subject", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
         results.append(result)
 
         print("Processsing rule based (Verb)... ")
-        filtered_sentences = rule_based.filter_verb(nltk_sentences)
         words = p.get_tokenized_words(filtered_sentences)
-        begin, end, indexed_sentences = p.find_sentence_index(data, words)
+        begin, end, indexed_sentences = p.find_sentence_index(words)
         evaluation = self.evaluate(data, begin, end)
         result = {"key":"has_verb", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
         results.append(result)
 
         print("Processsing rule based (Subject & Verb)... ")
-        filtered_sentences = rule_based.filter_subject(nltk_sentences)
         filtered_sentences = rule_based.filter_verb(filtered_sentences)
         words = p.get_tokenized_words(filtered_sentences)
-        begin, end, indexed_sentences = p.find_sentence_index(data, words)
+        begin, end, indexed_sentences = p.find_sentence_index(words)
         evaluation = self.evaluate(data, begin, end)
         result = {"key":"has_subjectVerb", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
         results.append(result)
