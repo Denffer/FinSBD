@@ -29,6 +29,7 @@ class Render:
 
         self.output["ground_truth_begin"] = NoIndent(self.data.begin)
         self.output["ground_truth_end"] = NoIndent(self.data.end)
+        self.output["ground_truth_total_cnt"] = NoIndent(len(self.data.begin))
         self.output[separator] = {}
 
     
@@ -36,6 +37,7 @@ class Render:
         key = result["key"]
         self.output[key+"_begin"] = NoIndent(result["begin"])
         self.output[key+"_end"] = NoIndent(result["end"])
+        self.output[key+"_total_cnt"] = NoIndent(len(result["begin"]))
         self.output[key+"_evaluation"] = NoIndent(result["evaluation"])
         self.output[separator] = {}
 
