@@ -9,9 +9,10 @@ from render import Render
 class Evaluate:
     """ python version : 3.6 """
 
-    def __init__(self, src_path, dst_path="output/"):
+    def __init__(self, src_path, filename="output.json"):
         self.src = src_path
-        self.dst = dst_path
+        self.dst = "output/"
+        self.filename = filename
 
     def evaluate(self, data, begin, end):
         """ check the percentage hit rate as compared to ground truth """
@@ -77,15 +78,16 @@ class Evaluate:
         results.append(result)
 
         # write result
-        print("Writing data to: " + str(self.dst) + "\033[1m" + "output.txt" + "\033[0m")
-        render = Render(self.dst, data, ground_truth, results)
+        print("Writing data to: " + str(self.dst) + "\033[1m" + str(self.filename) + "\033[0m")
+        render = Render(self.dst, self.filename, data, ground_truth, results)
         render.save()
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--src", type=str, required=True, help="path for the source")
+    parser.add_argument("--filename", type=str, required=True, help="name for the file")
     args = parser.parse_args()
 
-    main = Evaluate(src_path=args.src)
+    main = Evaluate(src_path=args.src,filename=args.filename)
     main.run()
