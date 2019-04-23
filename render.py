@@ -3,8 +3,9 @@ import json
 
 class Render:
     """ Put things in order and save json file """
-    def __init__(self, dst_path, data, ground_truth, results):
+    def __init__(self, dst_path, filename, data, ground_truth, results):
         self.dst_path = dst_path
+        self.filename = filename
         self.data = data
         # self.ground_truth = ground_truth # ground truth is the sentences
         self.results = results
@@ -60,7 +61,7 @@ class Render:
         self.output[key] = sentence_list
 
     def save(self):
-        f = open(self.dst_path + "/output.json", 'w+')
+        f = open(self.dst_path + self.filename, 'w+')
         f.write(json.dumps(self.output, indent = 4, default=default))
 
 class NoIndent(object):
