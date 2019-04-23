@@ -42,7 +42,7 @@ class Preprocess:
         """ return the begin_index & end_index & sentences of the query words """
 
         sentences, begin, end = [], [], []
-        for words in query_list:
+        for words in tqdm(query_list):
 
             sentence, sentence_index = self.get_sublist_index(words, self.data.indexed_corpus)
 
@@ -63,7 +63,7 @@ class Preprocess:
         # add filter to filter out sentences if it is too short
         for index in (i for i, e in enumerate(indexed_list) if e[1] == sublist[0] and sublist_length >= 3 ):
 
-            if indexed_list[index+1][1] == sublist[1]:
+            if indexed_list[index+2][1] == sublist[2]:
                 # turn indexed words into words for comparison
                 l = [word[1] for word in indexed_list[index:index+sublist_length]]
                 matched_sentence = " ".join(l)
