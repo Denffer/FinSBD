@@ -1,5 +1,6 @@
 /new_dataset
 /new_dataset.zip
 *.pyc
-/output
+/output/*
 test.py
+*.json
