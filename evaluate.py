@@ -40,9 +40,9 @@ class Evaluate:
         sublist_length = len(sublist)
         matched_sentence = ""
         
-        for index in (i for i, e in enumerate(idx_tokens) if e[1] == sublist[0]):
-
-            if idx_tokens[index+1][1] == sublist[1]:
+        for index in (i for i, e in enumerate(idx_tokens) if e[1] == sublist[0] and len(sublist) > 1 ):
+            
+            if idx_tokens[index+1][0] == sublist[0]:
                 #print("hit:", sublist)
 
                 # turn indexed words into words for comparison
