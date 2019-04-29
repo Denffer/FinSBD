@@ -1,6 +1,5 @@
 import argparse
 from dataset import TextDataset
-from preprocess import Preprocess
 from model.rulebased import RuleBased
 from evaluate import Evaluate
 from render import Render
@@ -24,10 +23,10 @@ class Main:
 
         # nltk as baseline
         print("Processsing NLTK as baseline ... ")
-        nltk_sentences = r.get_nltk_tokenized_sentences(data.text)
+        nltk_sentences = r.get_nltk_tokenized_sentences(data.clean_text)
         
         query_list =  [s.split(" ") for s in nltk_sentences]
-        begin, end, indexed_sentences = e.find_sentence_index(data, query_list)
+        begin, end, indexed_sentences = e.find_query_index(data.clean_idx_tokens, query_list)
         #breakpoint()
 
         evaluation = e.evaluate(data, begin, end)
@@ -37,32 +36,34 @@ class Main:
 
         # #rule_based methods
 
-        # print("Processsing rule based (Subject) ... ")
-        # filtered_sentences = rule_based.filter_subject(nltk_sentences)
-        # words = p.get_tokenized_words(filtered_sentences)
-        # begin, end, indexed_sentences = p.find_sentence_index(words)
-        # evaluation = self.evaluate(data, begin, end)
-        # result = {"key":"has_subject", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
-        # results.append(result)
+        print("Processsing rule based (Subject) ... ")
+        filtered = r.filter_subject(nltk_sentences)
+        query_list =  [s.split(" ") for s in filtered]
+        begin, end, indexed_sentences = e.find_query_index(data.clean_idx_tokens, query_list)
+        evaluation = e.evaluate(data, begin, end)
+        result = {"key":"has_subject", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
+        self.results.append(result)
 
-        # print("Processsing rule based (Verb)... ")
-        # words = p.get_tokenized_words(filtered_sentences)
-        # begin, end, indexed_sentences = p.find_sentence_index(words)
-        # evaluation = self.evaluate(data, begin, end)
-        # result = {"key":"has_verb", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
-        # results.append(result)
+        print("Processsing rule based (Verb)... ")
+        filtered = r.filter_verb(nltk_sentences)
+        query_list =  [s.split(" ") for s in filtered]
+        begin, end, indexed_sentences = e.find_query_index(data.clean_idx_tokens, query_list)
+        evaluation = e.evaluate(data, begin, end)
+        result = {"key":"has_verb", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
+        self.results.append(result)
 
-        # print("Processsing rule based (Subject & Verb)... ")
-        # filtered_sentences = rule_based.filter_verb(filtered_sentences)
-        # words = p.get_tokenized_words(filtered_sentences)
-        # begin, end, indexed_sentences = p.find_sentence_index(words)
-        # evaluation = self.evaluate(data, begin, end)
-        # result = {"key":"has_subjectVerb", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
-        # results.append(result)
+        print("Processsing rule based (Subject & Verb)... ")
+        filtered = r.filter_subject(nltk_sentences)
+        filtered = r.filter_verb(filtered)
+        query_list =  [s.split(" ") for s in filtered]
+        begin, end, indexed_sentences = e.find_query_index(data.clean_idx_tokens, query_list)
+        evaluation = e.evaluate(data, begin, end)
+        result = {"key":"has_subjectVerb", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
+        self.results.append(result)
 
         # write result
         print("Writing data to: " + str(self.dst) + "\033[1m" + str(self.filename) + "\033[0m")
-        render = Render(self.dst, self.filename, data, p.ground_truth, results)
+        render = Render(self.dst, self.filename, data, data.ground_truth, self.results)
         render.save()
 
 if __name__ == '__main__':
