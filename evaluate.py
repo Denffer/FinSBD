@@ -30,7 +30,6 @@ class Evaluate:
                         break
 
 
-        #print(begin, end, sentences)
         return begin, end, sentences
 
     def get_sublist_index(self, idx_tokens, sublist):
@@ -42,7 +41,7 @@ class Evaluate:
         
         for index in (i for i, e in enumerate(idx_tokens) if e[1] == sublist[0] and len(sublist) > 1 ):
             
-            if idx_tokens[index+1][0] == sublist[0]:
+            if idx_tokens[index][1] == sublist[0]:
                 #print("hit:", sublist)
 
                 # turn indexed words into words for comparison
@@ -55,7 +54,7 @@ class Evaluate:
                     sublist_index = [begin, end]
 
                 else:
-                    break
+                    continue
             else:
                 break
 

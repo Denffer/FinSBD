@@ -27,7 +27,7 @@ class Main:
         
         query_list =  [s.split(" ") for s in nltk_sentences]
         begin, end, indexed_sentences = e.find_query_index(data.clean_idx_tokens, query_list)
-        #breakpoint()
+        breakpoint()
 
         evaluation = e.evaluate(data, begin, end)
         result = {"key":"nltk", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
