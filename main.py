@@ -19,17 +19,16 @@ class Main:
         # get data
         data = TextDataset(self.src)
         # preprocess
-        p = Preprocess(data)
         r = RuleBased()
         e = Evaluate()
 
         # nltk as baseline
         print("Processsing NLTK as baseline ... ")
         nltk_sentences = r.get_nltk_tokenized_sentences(data.text)
-        query_list = p.get_tokenized_words(nltk_sentences)
         
+        query_list =  [s.split(" ") for s in nltk_sentences]
         begin, end, indexed_sentences = e.find_sentence_index(data, query_list)
-        breakpoint()
+        #breakpoint()
 
         evaluation = e.evaluate(data, begin, end)
         result = {"key":"nltk", "begin":begin, "end":end, "sentences":indexed_sentences, "evaluation":evaluation}
