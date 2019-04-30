@@ -16,9 +16,13 @@ class Evaluate:
         for words in tqdm(query_list):
             
             sentence, sentence_index = self.get_sublist_index(idx_tokens, words)
-
+            
 
             if sentence and sentence_index:
+
+                # print("begin:", sentence_index[0], "end:", sentence_index[1])
+                # print(sentence)
+                # breakpoint()
                 sentences.append([sentence_index, sentence])
                 begin.append(sentence_index[0])
                 end.append(sentence_index[1])
@@ -26,9 +30,7 @@ class Evaluate:
                 for i, tok in enumerate(idx_tokens):
                     if tok[0] == sentence_index[1]:
                         idx_tokens = idx_tokens[i+1:]
-                        #print("trimmed:",idx_tokens)
                         break
-
 
         return begin, end, sentences
 
@@ -52,9 +54,10 @@ class Evaluate:
                     indexed_l = [word for word in idx_tokens[index:index+sublist_length]]
                     begin, end = indexed_l[0][0], indexed_l[-1][0]
                     sublist_index = [begin, end]
+                    break
 
                 else:
-                    continue
+                    break
             else:
                 break
 
